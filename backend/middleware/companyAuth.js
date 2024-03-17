@@ -11,7 +11,7 @@ exports.isAuthenticated=async(req,res,next)=>{
             })
         }
         const decoded=await jwt.verify(token,process.env.JWT_SECRET); //decoded will contain the id of the company
-        req.company=await Company.findById(decoded._id);
+        req.company=await Company.findById(decoded.id);
         next();
     }catch(err){
         return res.status(500).json({
