@@ -16,8 +16,14 @@ const postSchema = new mongoose.Schema(
     },
     likes: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        likeType: {
+          type: String,
+          enum: ["Thumb", "Heart", "Congratulations", "MindBlowing"],
+        },
       },
     ],
     comments: [

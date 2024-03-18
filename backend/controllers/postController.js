@@ -124,3 +124,46 @@ exports.likeAndUnlikePost = async (req, res) => {
     });
   }
 };
+
+// UPDATA CAPTION
+exports.updateCaption = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    // Check if the ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid post ID format",
+      });
+    }
+    // console.log(req.params.id);
+
+    const post = await PostModel.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    if (post.owner.toString() !== req.user._id.toString()) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    post.caption = req.body.caption;
+
+    await post.save();
+    res.status(200).json({
+      success: true,
+      message: "Post updated",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

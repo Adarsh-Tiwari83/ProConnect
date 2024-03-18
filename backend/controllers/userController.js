@@ -119,6 +119,24 @@ exports.loginController = async (req, res) => {
   }
 };
 
+//logout
+exports.logout = async (req, res) => {
+  try {
+    res
+      .status(200)
+      .cookie("token", null, { expires: new Date(Date.now()), httpOnly: true })
+      .json({
+        success: false,
+        message: "Logged out",
+      });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 //Followers
 exports.followUnfollow = async (req, res) => {
   try {
@@ -179,6 +197,216 @@ exports.PostOfFollowing = async (req, res) => {
     res.status(200).json({
       success: true,
       posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//UPDATE PASSWORD
+exports.updatePassword = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user._id);
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide old and new Password",
+      });
+    }
+
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect Old Password",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Password updated",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//UPDATE PROFILE
+exports.updateProfile = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user._id);
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      address,
+      education,
+      work,
+      experiences,
+      projects,
+      skills,
+    } = req.body;
+
+    if (firstName) {
+      user.firstName = firstName;
+    }
+    if (lastName) {
+      user.lastName = lastName;
+    }
+    if (email) {
+      user.email = email;
+    }
+    if (phone) {
+      user.phone = phone;
+    }
+    if (address) {
+      user.address = address;
+    }
+    if (education) {
+      user.education = education;
+    }
+    if (work) {
+      user.work = work;
+    }
+    if (experiences) {
+      user.experiences = experiences;
+    }
+    if (projects) {
+      user.projects = projects;
+    }
+    if (skills) {
+      user.skills = skills;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile Updated Successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//DELETE PROFILE
+exports.deleteMyProfile = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user._id);
+    const posts = user.posts;
+    const followers = user.followers;
+    const following = user.following;
+    const userId = user._id;
+
+    await user.deleteOne();
+
+    //logout user after deleting the profile
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    });
+
+    //deleting all the post of the user
+    for (let i = 0; i < posts.length; i++) {
+      const post = await PostModel.findById(posts[i]);
+      await post.deleteOne();
+    }
+
+    //removing all user from followers  following
+    for (let i = 0; i < followers.length; i++) {
+      const follower = await UserModel.findById(followers[i]);
+
+      const index = follower.following.indexOf(userId);
+      follower.following.splice(index, 1);
+
+      await follower.save();
+    }
+
+    //removing all user from following's followers
+    for (let i = 0; i < following.length; i++) {
+      const follows = await UserModel.findById(following[i]);
+
+      const index = follows.followers.indexOf(userId);
+      follows.followers.splice(index, 1);
+
+      await follows.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile Deleted",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//GETTING PROFILE INFORMATAION
+exports.myProfile = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user._id).populate("posts");
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//GETTING USER PROFILE
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.params.id).populate("posts");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//Getting all user which are in database
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await UserModel.find({});
+
+    res.status(200).json({
+      success: true,
+      users,
     });
   } catch (error) {
     res.status(500).json({

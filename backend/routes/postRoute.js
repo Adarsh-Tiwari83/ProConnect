@@ -11,6 +11,7 @@ const router = express.Router();
 // post
 router.post("/create", isAuthenticated, createPost);
 router.get("/:id", isAuthenticated, likeAndUnlikePost);
+router.put("/:id", isAuthenticated, updateCaption);
 router.delete("/:id", isAuthenticated, deletePost);
 
 module.exports = router;
