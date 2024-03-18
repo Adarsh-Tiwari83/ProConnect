@@ -3,6 +3,8 @@ const app = express();
 const port = 3000;
 const cookieParser = require("cookie-parser");
 require("dotenv").config({ path: "./config/config.env" });
+const userRoutes = require("./routes/userRoute");
+const postRoutes = require("./routes/postRoute");
 
 const { connectDB } = require("./config/db");
 connectDB();
@@ -14,6 +16,8 @@ app.use(cookieParser());
 const companyRoutes = require("./routes/company");
 
 app.use("/api/v1/company", companyRoutes);
+app.use("/api/v1/auth", userRoutes);
+app.use("/api/v1/post", postRoutes);
 
 app.listen(port, () => {
   console.log(`http://localhost:${port}`);
