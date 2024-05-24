@@ -1,5 +1,6 @@
 const PostModel = require("../models/postModel");
 const UserModel = require("../models/userModel");
+const mongoose = require("mongoose");
 
 exports.createPost = async (req, res) => {
   try {
@@ -159,6 +160,149 @@ exports.updateCaption = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Post updated",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//comment on post is added
+
+exports.commentOnPost = async (req, res) => {
+  try {
+    const post = await PostModel.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    let commentIndex = -1;
+
+    //checking ig comment already exists
+    post.comments.forEach((item, index) => {
+      if (item.user.toString() === req.user._id.toString()) {
+        commentIndex = index;
+      }
+    });
+
+    if (commentIndex !== -1) {
+      post.comments[commentIndex].comment = req.body.comment;
+      await post.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Comment Updated",
+      });
+    } else {
+      post.comments.push({
+        user: req.user._id,
+        comment: req.body.comment,
+      });
+
+      await post.save();
+      return res.status(200).json({
+        success: true,
+        message: "Comment added",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//Deleting the comment
+
+exports.deleteComment = async (req, res) => {
+  try {
+    const post = await PostModel.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    //if wala condition sirf owner kliye h jo sbhi post lo delete kr skta h but else wla sirf whis user delete kr skta h jiks o post h
+    if (post.owner.toString() === req.user._id.toString()) {
+      if (req.body.commentId == undefined) {
+        return res.status(400).json({
+          success: false,
+          message: "Comment Id is required",
+        });
+      }
+
+      post.comments.forEach((item, index) => {
+        if (item._id.toString() === req.body.commentId.toString()) {
+          return post.comments.splice(index, 1);
+        }
+      });
+
+      await post.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Selected comment has deleted",
+      });
+    } else {
+      post.comments.forEach((item, index) => {
+        if (item.user.toString() === req.user._id.toString()) {
+          return post.comments.splice(index, 1);
+        }
+      });
+
+      await post.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Your Comment has deleted",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.repost = async (req, res) => {
+  try {
+    const originalPost = await PostModel.findById(req.params.id);
+
+    if (!originalPost) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Create a new post with reference to the original post
+    const newPostData = {
+      caption: originalPost.caption,
+      image: originalPost.image,
+      owner: req.user._id,
+      originalPost: originalPost._id,
+    };
+
+    const repostedPost = await PostModel.create(newPostData);
+
+    // Add the reposting user to the original post's reposts array
+    originalPost.reposts.push(req.user._id);
+    originalPost.repostCount += 1; // Increment repost count
+    await originalPost.save();
+
+    res.status(201).json({
+      success: true,
+      post: repostedPost,
     });
   } catch (error) {
     res.status(500).json({
