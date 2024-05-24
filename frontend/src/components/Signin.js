@@ -2,12 +2,11 @@ import { Button, Grid, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import linkedin from "../images/linkedin.png"
 import developer from "../images/developer.png"
-import professional from "../images/professional.jpg"
 import { signInWithPopup } from 'firebase/auth'
 import { auth, database, googleProvider } from '../firebase/setup'
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore'
 import { ToastContainer, toast } from 'react-toastify';
-  import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom'
 
 
@@ -53,7 +52,7 @@ function Signin() {
         <Grid item xs={6} sx={{paddingLeft:"80px",paddingTop:"15px"}}>
             <ToastContainer autoClose={2000} position='top-right'/>
            <img style={{width:"130px"}} src={linkedin}/>
-            <h2 style={{fontWeight:"100",fontSize:"60px",color:"#B26F28"}}>Welcome To Your Professional Community</h2>
+            <h2 style={{fontWeight:"100",fontSize:"60px",color:"#B26F28"}}>Welcome to <t>ProConnect</t></h2>
             <label style={{color:"grey",fontSize:"10px"}}>Enter username</label>
             <br/>
             <TextField onChange={(e)=> setUsername(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}  variant='outlined' label="Username" sx={{width:"400px",mt:"5px"}}/>
@@ -65,7 +64,6 @@ function Signin() {
         </Grid>
         <Grid item xs={6}>
            <img style={{width:"500px"}} src={developer}/>
-           <img style={{width:"500px",borderRadius:"10%"}} src={professional}/>
         </Grid>
       </Grid>
     </div>

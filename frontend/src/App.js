@@ -2,7 +2,7 @@ import React from 'react'
 import Main from './components/Main'
 import { Route, Routes } from 'react-router-dom'
 import Signin from './components/Signin'
-//import Connection from './components/Connection'
+
 
 function App() {
   return (
@@ -15,4 +15,4 @@ function App() {
   )
 }
 
-export default App;
+export default App
