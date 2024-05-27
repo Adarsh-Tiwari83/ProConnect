@@ -11,7 +11,7 @@ exports.sendEmail = async (options) => {
       },
       service: process.env.SMPT_SERVICE,
       secure: false,
-    });
+});
 
     let info = await transporter.sendMail({
       from: process.env.SMPT_HOST, // sender address
